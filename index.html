@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="theme-color" content="#2c4c7c">
-    <title>高频词汇本 · 自动轮播学习 | 双模式自动发音</title>
+    <title>高频词汇本 · 自动轮播学习（默认开启）</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -100,7 +100,7 @@
         <button id="wordListBtn" class="ctrl-btn"><i class="fas fa-list"></i> 单词列表</button>
         <div class="auto-play-control">
             <label><i class="fas fa-play-circle"></i> 自动轮播
-                <input type="checkbox" id="autoPlayCheckbox" style="vertical-align: middle;">
+                <input type="checkbox" id="autoPlayCheckbox" checked>
             </label>
             <select id="autoPlayIntervalSelect">
                 <option value="3000">3秒</option>
@@ -177,7 +177,7 @@
         <div class="chart-container"><canvas id="studyChart" width="260" height="120"></canvas></div>
         <div class="wrong-words"><h4><i class="fas fa-eraser"></i> 错题本/生词本</h4><ul id="wrongList" class="wrong-list"><li>暂无错词</li></ul></div>
     </div>
-    <div class="footer-note"><i class="fas fa-arrows-alt"></i> 手势滑动切词 | 星级掌握度 | 拼写自动记错 | 自动轮播学习 | 双模式自动发音</div>
+    <div class="footer-note"><i class="fas fa-arrows-alt"></i> 手势滑动切词 | 星级掌握度 | 拼写自动记错 | 自动轮播默认开启 | 双模式自动发音</div>
 </div>
 
 <div id="wordListModal" class="modal">
@@ -217,7 +217,7 @@ let currentIndex = 0;
 let spellMode = false;
 let autoSpeakEnabled = true;
 let autoAccent = 'en-US';
-let autoPlayEnabled = false;
+let autoPlayEnabled = true;   // 默认开启自动轮播
 let autoPlayTimer = null;
 let autoPlayIntervalMs = 5000; // 默认5秒
 
@@ -237,7 +237,7 @@ function updateWrongListUI() {
     if(!wrongList.length) { container.innerHTML = '<li>暂无错词，加油！</li>'; return; }
     container.innerHTML = wrongList.map(word => `<li data-word="${word}">${word}</li>`).join('');
     document.querySelectorAll('#wrongList li').forEach(li => {
-        li.addEventListener('click', () => { let w = li.dataset.word; let idx = currentDisplayWords.findIndex(item=>item.word===w); if(idx!==-1) { currentIndex=idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); stopAutoPlayIfNeeded(); } });
+        li.addEventListener('click', () => { let w = li.dataset.word; let idx = currentDisplayWords.findIndex(item=>item.word===w); if(idx!==-1) { currentIndex=idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); resetAutoPlayTimer(); } });
     });
 }
 function addToWrongList(word) { if(!wrongList.includes(word)) { wrongList.push(word); localStorage.setItem(STORAGE.WRONG, JSON.stringify(wrongList)); updateWrongListUI(); } }
@@ -339,7 +339,6 @@ function setAutoPlay(enable) {
     if (enable) startAutoPlay();
     else stopAutoPlay();
 }
-// 当用户手动切换单词时，若自动轮播开启，应重置计时器，防止立即跳转（让用户停留当前单词足够时间）
 function resetAutoPlayTimer() {
     if (autoPlayEnabled) {
         if (autoPlayTimer) {
@@ -493,8 +492,9 @@ document.getElementById('autoSpeakCheckbox').addEventListener('change', (e) => {
 // 自动轮播开关
 const autoPlayCheckbox = document.getElementById('autoPlayCheckbox');
 const autoPlayIntervalSelect = document.getElementById('autoPlayIntervalSelect');
+autoPlayCheckbox.checked = true;   // 默认选中
 autoPlayCheckbox.addEventListener('change', (e) => { setAutoPlay(e.target.checked); });
-autoPlayIntervalSelect.addEventListener('change', (e) => { autoPlayIntervalMs = parseInt(e.target.value); if (autoPlayEnabled) { setAutoPlay(true); } }); // 重新启动轮播以应用新间隔
+autoPlayIntervalSelect.addEventListener('change', (e) => { autoPlayIntervalMs = parseInt(e.target.value); if (autoPlayEnabled) { setAutoPlay(true); } });
 
 function toggleDark(){ document.body.classList.toggle('dark'); localStorage.setItem('darkMode', document.body.classList.contains('dark')); }
 if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
@@ -515,9 +515,11 @@ updateWordUI();
 updateWrongListUI();
 updateChart();
 
-// 自动轮播默认关闭，等待用户手动开启
+// 启动默认自动轮播
+setAutoPlay(true);
+
 if ('serviceWorker' in navigator) {
-    const swCode = `const CACHE='final-pdf-v8'; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'])))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+    const swCode = `const CACHE='final-pdf-v9'; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'])))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
     const blob = new Blob([swCode], {type:'application/javascript'});
     navigator.serviceWorker.register(URL.createObjectURL(blob));
 }
