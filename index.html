@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="theme-color" content="#2c4c7c">
-    <title>高频词汇本 · 精确Lesson分组 | 双模式自动发音</title>
+    <title>高频词汇本 · 自动轮播学习 | 双模式自动发音</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -67,7 +67,9 @@
         .footer-note { text-align: center; font-size: 0.6rem; padding: 0.5rem; color: var(--text-soft); border-top: 1px solid var(--card-border);}
         .auto-speak-toggle { display: flex; align-items: center; gap: 5px; background: var(--chip-bg); border-radius: 30px; padding: 3px 10px; }
         .auto-speak-toggle label { font-size: 0.7rem; cursor: pointer; }
-        /* 单词列表模态框 */
+        .auto-play-control { display: flex; align-items: center; gap: 8px; background: var(--chip-bg); border-radius: 30px; padding: 3px 12px; }
+        .auto-play-control label { font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .auto-play-control select { background: transparent; border: none; color: var(--chip-color); font-weight: 500; outline: none; font-size: 0.7rem; margin-left: 4px; }
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content { background: var(--modal-bg); color: var(--modal-text); width: 90%; max-width: 500px; max-height: 80%; border-radius: 32px; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
         .modal-content h3 { margin-bottom: 12px; font-size: 1.2rem; }
@@ -75,7 +77,6 @@
         .word-list-item { background: var(--modal-item-bg); padding: 6px 10px; border-radius: 30px; text-align: center; cursor: pointer; font-size: 0.8rem; transition: 0.1s; color: var(--modal-text); }
         .word-list-item:hover { background: var(--btn-primary-bg); color: white; }
         .close-modal { float: right; font-size: 1.3rem; cursor: pointer; margin-bottom: 8px; align-self: flex-end; }
-        /* 深色模式单词列表文字颜色加强 */
         body.dark .word-list-item { color: white; }
         @media (max-width: 650px) {
             .en-word { font-size: 2rem; }
@@ -89,7 +90,7 @@
 <body>
 <div class="master-card">
     <div class="header">
-        <h1><i class="fas fa-layer-group"></i> 高频词汇本 · 精确Lesson分组</h1>
+        <h1><i class="fas fa-layer-group"></i> 高频词汇本 · 自动轮播学习</h1>
     </div>
     <div class="control-bar">
         <button id="darkModeBtn" class="ctrl-btn"><i class="fas fa-moon"></i> 深色</button>
@@ -97,6 +98,17 @@
         <button id="modeSwitchBtn" class="ctrl-btn"><i class="fas fa-exchange-alt"></i> 拼写模式</button>
         <button id="reviewWrongBtn" class="ctrl-btn"><i class="fas fa-book"></i> 复习错题本</button>
         <button id="wordListBtn" class="ctrl-btn"><i class="fas fa-list"></i> 单词列表</button>
+        <div class="auto-play-control">
+            <label><i class="fas fa-play-circle"></i> 自动轮播
+                <input type="checkbox" id="autoPlayCheckbox" style="vertical-align: middle;">
+            </label>
+            <select id="autoPlayIntervalSelect">
+                <option value="3000">3秒</option>
+                <option value="5000" selected>5秒</option>
+                <option value="8000">8秒</option>
+                <option value="10000">10秒</option>
+            </select>
+        </div>
         <div class="auto-speak-toggle">
             <i class="fas fa-volume-up"></i>
             <label><input type="checkbox" id="autoSpeakCheckbox" checked> 自动发音</label>
@@ -165,7 +177,7 @@
         <div class="chart-container"><canvas id="studyChart" width="260" height="120"></canvas></div>
         <div class="wrong-words"><h4><i class="fas fa-eraser"></i> 错题本/生词本</h4><ul id="wrongList" class="wrong-list"><li>暂无错词</li></ul></div>
     </div>
-    <div class="footer-note"><i class="fas fa-arrows-alt"></i> 手势滑动切词 | 星级掌握度 | 拼写自动记错 | 按Lesson分类 | 可选手动英/美 | 双模式自动发音</div>
+    <div class="footer-note"><i class="fas fa-arrows-alt"></i> 手势滑动切词 | 星级掌握度 | 拼写自动记错 | 自动轮播学习 | 双模式自动发音</div>
 </div>
 
 <div id="wordListModal" class="modal">
@@ -178,245 +190,19 @@
 
 <script>
 // ============================================================
-// 手动整理的高频词汇库（根据PDF原文，每个Lesson单词精确）
-// Lesson 5 ~ 12，共约620个单词
+// 高频词汇库（PDF提取，Lesson 5~12）
 // ============================================================
 const wordsByLesson = {
-    5: [
-        ["section", "部分; 部门; 区域"], ["selection", "选择; 挑选"], ["dispose", "处理; 安排; 扔掉"],
-        ["extensive", "广泛的; 大量的"], ["appoint", "任命; 约定"], ["account", "解释; 账户; 认为"],
-        ["beneficial", "有益的"], ["arrange", "安排; 整理"], ["tender", "温柔的; 脆弱的"],
-        ["preferable", "更可取的; 更好的"], ["arrangement", "安排; 筹备"], ["slight", "轻微的; 轻视"],
-        ["liable", "有责任的; 易于____的"], ["attraction", "吸引; 吸引力"], ["mild", "温和的; 轻微的"],
-        ["extension", "延伸; 扩大"], ["fascinate", "使着迷; 深深吸引"], ["fundamental", "基本的; 根本的"],
-        ["assemble", "组装; 集合"], ["comparative", "比较的; 相对的"], ["extent", "程度; 范围"],
-        ["attractive", "有吸引力的"], ["comparison", "比较; 对比"], ["supreme", "最高的; 至高的"],
-        ["vary", "变化; 改变"], ["significant", "重要的; 显著的"], ["accumulate", "积累; 积攒"],
-        ["transfer", "转移; 转让; 转学"], ["involve", "涉及; 包含; 使参与"], ["shift", "转移; 转变; 更换"],
-        ["significance", "意义; 重要性"], ["nuisance", "讨厌的人/事; 麻烦"], ["comprise", "包含; 由____组成"],
-        ["cultivate", "培养; 耕作"], ["anxiety", "焦虑; 担忧"], ["offend", "冒犯; 违反"],
-        ["transport", "运输; 运送"], ["postpone", "推迟; 延期"], ["impress", "给____留下印象"],
-        ["transmit", "传输; 传播; 发送"], ["conservative", "保守的; 守旧的"], ["impression", "印象; 感想"],
-        ["transform", "改变; 使变形"], ["confident", "自信的; 有信心的"], ["impressive", "令人印象深刻的"],
-        ["transplant", "移植; 移栽"], ["grant", "授予; 同意; 拨款"], ["interfere", "干涉; 干扰"],
-        ["liberal", "开明的; 自由的; 慷慨的"], ["exaggerate", "夸张; 夸大"], ["range", "范围; 一系列; 变动"],
-        ["outstanding", "杰出的; 显著的"], ["curiosity", "好奇心; 好奇"], ["differ", "不同; 有区别"],
-        ["consistent", "一致的; 始终如一的"], ["remedy", "补救; 治疗; 疗法"], ["bare", "赤裸的; 光秃秃的"],
-        ["considerate", "体贴的; 考虑周到的"], ["status", "地位; 状态"], ["vacant", "空缺的; 茫然的"],
-        ["optimistic", "乐观的"], ["determination", "决心; 决定"], ["hollow", "空的; 空洞的"],
-        ["optional", "可选择的; 非强制的"], ["accurate", "准确的; 精确的"],
-        ["blank", "空白的; 茫然的"], ["obvious", "明显的; 显而易见的"], ["adequate", "足够的; 适当的"],
-        ["relate", "联系; 讲述; 相关"], ["exhaust", "耗尽; 使筋疲力尽"], ["excessive", "过多的; 过分的"],
-        ["urgent", "紧急的; 急迫的"], ["exploit", "利用; 剥削; 开发"], ["excess", "过量; 过剩"],
-        ["partial", "部分的; 偏袒的"], ["consume", "消耗; 消费; 吃光"]
-    ],
-    6: [
-        ["idle", "闲置的; 懒散的; 虚度"], ["emotion", "情绪; 情感"], ["response", "回应; 答复; 反应"],
-        ["inevitable", "不可避免的"], ["awkward", "尴尬的; 笨拙的"], ["responsible", "负责的; 可靠的"],
-        ["poverty", "贫穷; 贫困"], ["gradual", "逐渐的; 逐步的"], ["settlement", "定居; 解决; 定居点"],
-        ["vigorous", "精力充沛的; 有力的"], ["amaze", "使惊奇; 使惊愕"], ["solution", "解决办法; 溶液"],
-        ["trial", "试验; 审判; 考验"], ["startle", "使惊吓; 使吃惊"], ["grasp", "抓住; 理解; 领会"],
-        ["battery", "电池; 一系列"], ["amuse", "使开心; 逗乐"], ["reap", "收获; 获得"],
-        ["reserve", "保留; 预订; 储备"], ["feature", "特征; 特点; 以——为特色"], ["compress", "压缩; 压紧"],
-        ["provision", "供应; 条款; 预备"], ["trait", "特征; 品质; 特点"], ["decrease", "减少; 降低"],
-        ["tidy", "整洁的; 整理"], ["stimulate", "刺激; 激励; 促进"], ["deduct", "扣除; 减去"],
-        ["appreciate", "欣赏; 感激; 理解"], ["appearance", "外观; 外貌; 出现"], ["exchange", "交换; 交流"],
-        ["appeal", "呼吁; 吸引; 上诉"], ["secure", "安全的; 获得; 保护"], ["original", "最初的; 原创的"],
-        ["apply", "申请; 应用; 适用"], ["disturb", "打扰; 妨碍; 扰乱"], ["extreme", "极端的; 极度的"],
-        ["application", "申请; 应用"], ["tense", "紧张的; 拉紧的"], ["expense", "花费; 开销"],
-        ["applicant", "申请人"], ["intensive", "集中的; 深入的"], ["virtue", "美德; 优点"],
-        ["applicable", "适用的; 合适的"], ["access", "通道; 进入; 使用权"], ["property", "财产; 性质; 房产"],
-        ["approve", "批准; 赞成; 认可"], ["assess", "评估; 评定"], ["tough", "艰难的; 坚韧的"],
-        ["pace", "步伐; 节奏; 速度"], ["assignment", "任务; 作业; 分配"], ["instant", "立即的; 瞬间"],
-        ["scratch", "抓; 刮; 擦伤"], ["exception", "例外; 除外"]
-    ],
-    7: [
-        ["advisable", "明智的；可取的"], ["gap", "缺口；差距；间隔"], ["vain", "徒劳的；虚荣的"],
-        ["rate", "比率；速度；评价"], ["motivate", "激励；激发"], ["interval", "间隔；间歇"],
-        ["available", "可获得的；可用的"], ["equivalent", "等价的；相等的"], ["debate", "辩论；争论"],
-        ["tedious", "冗长乏味的；繁琐的"], ["perspective", "视角；观点；远景"], ["harsh", "严厉的；苛刻的；刺耳的"],
-        ["regardless", "不管；不顾"], ["arouse", "引起；唤醒；激发"], ["consult", "咨询；请教；查阅"],
-        ["wreck", "破坏；失事；残骸"], ["impact", "影响；冲击"], ["undermine", "破坏；削弱；损害"],
-        ["capacity", "能力；容量"], ["rip", "撕裂；撕开"], ["dispute", "争论；争端；质疑"],
-        ["temper", "脾气；情绪；缓和"], ["essential", "至关重要的；基本的"], ["passion", "激情；热爱；怒火"],
-        ["possibility", "可能性"], ["pollute", "污染；弄脏"], ["leak", "泄漏；漏洞"],
-        ["stain", "污渍；玷污"], ["necessarily", "必要地；必定"], ["approach", "方法；接近；处理"],
-        ["reveal", "揭示；显示；透露"], ["resist", "抵抗；抗拒；忍耐"], ["omit", "省略；遗漏；忽略"],
-        ["sustain", "维持；支撑；经受"], ["intact", "完整的；未受损的"], ["tolerate", "容忍；忍受；包容"],
-        ["revise", "修订；复习；修改"], ["bound", "一定的；束缚；跳跃"], ["spot", "地点；发现；认出"],
-        ["boundary", "边界；界限"], ["remarkable", "显著的；非凡的"], ["association", "协会；联系；联想"],
-        ["trace", "追踪；痕迹；追溯"], ["recycle", "回收；循环利用"], ["regulate", "管理；调节；控制"],
-        ["abuse", "滥用；虐待；辱骂"], ["lest", "唯恐；以免"], ["overlook", "俯瞰；忽视；宽恕"],
-        ["coordinate", "协调；配合"], ["intention", "意图；目的；打算"], ["mood", "心情；情绪"],
-        ["enormous", "巨大的；极大的"], ["reconcile", "调和；和解；妥协"], ["rainbow", "彩虹"],
-        ["ribbon", "丝带；带状物"], ["rank", "等级；排名；地位"], ["reverse", "颠倒；反转；相反的"],
-        ["occupy", "占据；占用；使忙碌"], ["promote", "促进；提升；推广"], ["classify", "分类；归类"],
-        ["accuse", "指责；控告；指控"], ["glimpse", "瞥见；一瞥"], ["view", "看法；视野；观看"],
-        ["vision", "视力；视野；愿景"]
-    ],
-    8: [
-        ["entitle", "使有权；给——题名"], ["absorb", "吸收；理解"], ["concentrate", "集中；专注"],
-        ["commit", "犯（错）；承诺；投入"], ["switch", "转换；开关"], ["convert", "转换；转变"],
-        ["fruitful", "富有成效的；多产的"], ["effective", "有效的；起作用的"], ["expansive", "广阔的；扩张的"],
-        ["expansion", "扩张；膨胀"], ["define", "定义；解释"], ["definite", "明确的；一定的"],
-        ["submit", "提交；屈服"], ["claim", "声称；索要；断言"], ["assert", "断言；坚持主张"],
-        ["proclaim", "宣告；声明"], ["amount", "数量；总计"], ["tend", "倾向；照料"],
-        ["tame", "驯服的；温顺的；驯化"], ["largely", "主要地；很大程度上"], ["guilty", "有罪的；内疚的"],
-        ["oblige", "迫使；帮忙；施恩惠"], ["issue", "问题；发行；流出"], ["severe", "严重的；严厉的"],
-        ["expose", "暴露；揭露"], ["exposure", "暴露；曝光"], ["betray", "背叛；泄露"],
-        ["acquire", "获得；取得"], ["inquire", "询问；打听"], ["furnish", "提供；布置家具"],
-        ["propose", "提议；建议"], ["dense", "密集的；稠密的"], ["device", "设备；装置"],
-        ["valid", "有效的；合理的"], ["trap", "陷阱；困住"], ["constant", "持续的；恒定的"],
-        ["bold", "大胆的；粗体的"], ["efficient", "高效的"], ["incline", "倾斜；倾向"],
-        ["purchase", "购买"], ["particularly", "尤其；特别"], ["retain", "保留；保持"],
-        ["endure", "忍受；持续"], ["maintain", "维持；保持；坚持认为"], ["survive", "生存；幸存；生还"],
-        ["minimum", "最小值；最低的"], ["modest", "谦虚的；适度的"], ["stock", "库存；股票；储备"],
-        ["assume", "假定；认为；承担"], ["crime", "罪行；犯罪"], ["distinct", "明显的；不同的；清晰的"],
-        ["sufficient", "足够的；充足的"], ["approximate", "大约；近似"], ["display", "展示；陈列；表现"],
-        ["reaction", "反应；回应"], ["comment", "评论；议论"], ["artificial", "人造的；人工的"],
-        ["contrast", "对比；对照"], ["contribute", "贡献；捐献；促成"], ["sole", "唯一的；单独的"],
-        ["attain", "获得；达到；实现"], ["observe", "观察；遵守；庆祝"], ["observation", "观察；观察力"],
-        ["growth", "成长；增长；发展"]
-    ],
-    9: [
-        ["neglect", "忽视;疏忽"], ["deny", "否认;拒绝"], ["miserable", "痛苦的;悲惨的"],
-        ["opportunity", "机会;机遇"], ["reality", "现实;真实"], ["consequently", "因此;所以"],
-        ["relieve", "减轻;缓解;宽慰"], ["relief", "减轻;解脱;救济"], ["contrary", "相反的;对立的"],
-        ["pitch", "音调;投掷;球场"], ["toss", "扔;抛;投掷"], ["insert", "插入;嵌入"],
-        ["impose", "强加;征收;推行"], ["plunge", "暴跌;投入;猛冲"], ["adjust", "调整;适应"],
-        ["harm", "伤害;损害"], ["spite", "恶意;不顾"], ["dim", "昏暗的;模糊的"],
-        ["delivery", "交付;投递;分娩"], ["inform", "通知;告知"], ["replace", "代替;取代"],
-        ["accomplish", "完成;实现"], ["surround", "包围;环绕"], ["circumstance", "情况;环境"],
-        ["generate", "产生;生成"], ["create", "创造;创作"], ["creative", "有创造力的"],
-        ["fade", "褪色;衰退;消失"], ["thorough", "彻底的;详尽的"], ["procedure", "程序;步骤"],
-        ["process", "过程;处理"], ["activity", "活动;行动"], ["participate", "参与;参加"],
-        ["cliff", "悬崖;峭壁"], ["respectively", "分别地;各自地"], ["reasonable", "合理的;公道的"],
-        ["specific", "具体的;特定的"], ["specialize", "专攻;专门研究"], ["usage", "使用;用法"],
-        ["utility", "效用;实用"], ["stable", "稳定的;稳固的"], ["abolish", "废除;废止"],
-        ["abundant", "大量的;丰富的"], ["cabinet", "内阁;橱柜"], ["candidate", "候选人;报考者"],
-        ["capable", "有能力的;能干的"], ["decay", "腐烂;衰退"], ["economy", "经济;节约"],
-        ["faithful", "忠实的;忠诚的"], ["identical", "相同的;同一的"], ["lag", "落后;滞后"],
-        ["negative", "消极的;否定的"], ["parade", "游行;检阅"], ["rack", "架子;折磨"],
-        ["rare", "稀有的;罕见的"], ["raw", "生的;原始的;未加工的"], ["sacrifice", "牺牲;奉献"],
-        ["salary", "薪水"], ["wage", "工资(周薪)"], ["veteran", "老兵;经验丰富的人"],
-        ["assembly", "集会;组装;议会"], ["clue", "线索;提示"], ["code", "代码;准则;密码"],
-        ["collective", "集体的;集体"]
-    ],
-    10: [
-        ["federal", "联邦的；联邦政府的"], ["feedback", "反馈；回复"], ["fertile", "肥沃的；多产的"],
-        ["finding", "发现；调查结果"], ["immense", "巨大的；极大的"], ["painful", "痛苦的；疼痛的"],
-        ["perceive", "感知；理解；察觉"], ["perception", "感知；看法；洞察力"], ["poison", "毒药；毒害"],
-        ["sanction", "制裁；认可；批准"], ["script", "剧本；手稿；笔迹"], ["senator", "参议员"],
-        ["sexual", "性的；性别的"], ["shortly", "不久；立刻；简短地"], ["sigh", "叹气；叹息"],
-        ["ski", "滑雪"], ["tremble", "颤抖；摇晃"], ["fluctuate", "波动；起伏"],
-        ["quiver", "颤抖；抖动"], ["tutor", "导师；家教；辅导"], ["union", "联盟；工会；联合"],
-        ["unload", "卸载；卸下"], ["exhibit", "展览；展示；展品"], ["expel", "驱逐；开除；排出"],
-        ["explicit", "明确的；清晰的"], ["democracy", "民主；民主制"], ["accent", "口音；重音"],
-        ["acceptable", "可接受的"], ["definitely", "肯定；明确地"], ["acid", "酸；酸性的"],
-        ["drift", "漂流；漂移；趋势"], ["amusement", "娱乐；乐趣"], ["aspect", "方面；外观"],
-        ["construct", "建造；构建；构思"], ["crew", "全体船员/机组人员"], ["divorce", "离婚；分离"],
-        ["domestic", "国内的；家庭的；家养的"], ["evidence", "证据；证明"], ["evolve", "进化；演变；发展"],
-        ["focus", "专注；焦点；聚焦"], ["organ", "器官；机构；风琴"], ["precaution", "预防；警惕；防备"],
-        ["prior", "先前的；优先的"], ["project", "项目；工程；投射"], ["revolt", "反抗；反叛；反感"],
-        ["scatter", "分散；散开；散播"], ["sphere", "领域；球体；范围"], ["stir", "搅动；激发；搅动"],
-        ["strain", "压力；拉紧；扭伤"], ["stress", "压力；强调；重读"], ["substance", "物质；实质；物品"],
-        ["up-to-date", "最新的；现代化的"], ["vague", "模糊的；含糊的"], ["blur", "模糊；使模糊"],
-        ["vessel", "船；容器；血管"], ["agenda", "议程；日程"], ["alongside", "在旁边；与——一起"],
-        ["banner", "横幅；旗帜"], ["chap", "家伙；小伙子"], ["charity", "慈善；慈善机构"],
-        ["charter", "宪章；特许；包租"], ["dash", "猛冲；破折号；短跑"], ["declaration", "声明；宣告"],
-        ["echo", "回声；回响；附和"], ["editorial", "社论；编辑的"], ["elderly", "年老的；老年人"]
-    ],
-    11: [
-        ["bar", "酒吧；禁止；障碍"], ["dot", "点；小点；点缀"], ["bond", "纽带；结合；债券"],
-        ["applaud", "鼓掌；称赞"], ["bonus", "奖金；红利；额外好处"], ["dental", "牙齿的；牙科的"],
-        ["cell", "细胞；牢房；电池"], ["anyway", "无论如何；不管怎样"], ["colleague", "同事；同僚"],
-        ["album", "相册；专辑；集邮册"], ["combination", "结合；组合；联合"], ["philosophy", "哲学；人生观"],
-        ["aid", "帮助；援助；辅助"], ["compatible", "兼容的；和睦的"], ["committee", "委员会"],
-        ["outward", "向外的；外表的"], ["consensus", "共识；一致意见"], ["presence", "出席；存在；风度"],
-        ["contaminate", "污染；弄脏"], ["airline", "航空公司；航线"], ["ambitious", "雄心勃勃的；有野心的"],
-        ["cord", "绳索；电线；弦"], ["criminal", "罪犯；犯罪的"], ["plus", "加上；加号；优势"],
-        ["cripple", "使残疾；削弱；跛子"], ["curb", "控制；抑制；路边"], ["decade", "十年；十年期"],
-        ["carpenter", "木匠"], ["probe", "探查；探测；调查"], ["denial", "否认；拒绝；克制"],
-        ["progressive", "进步的；渐进的"], ["destructive", "破坏性的；有害的"], ["dignity", "尊严；庄重"],
-        ["calendar", "日历；日程表"], ["dilemma", "困境；进退两难"], ["refusal", "拒绝；回绝"],
-        ["astonish", "使惊讶；使吃惊"], ["directly", "直接地；立即"], ["resent", "怨恨；愤恨"],
-        ["signal", "信号；标志"], ["awful", "糟糕的；可怕的"], ["shell", "壳；贝壳；外壳"],
-        ["sideways", "向侧面；侧身地"], ["wisdom", "智慧；明智"], ["roast", "烘烤；烤肉"],
-        ["creation", "创造；创作；作品"], ["rude", "粗鲁的；无礼的"], ["distract", "使分心；转移注意力"],
-        ["screw", "螺丝；拧紧"], ["whistle", "口哨；吹口哨"], ["dizzy", "头晕的；眩晕的"],
-        ["enclose", "围住；附上；封闭"], ["welfare", "福利；幸福"], ["energetic", "精力充沛的"],
-        ["cute", "可爱的；机灵的"], ["enjoyable", "令人愉快的"], ["deadly", "致命的；极度的"],
-        ["enlighten", "启发；开导；照亮"], ["corporation", "公司；企业"], ["enrich", "使丰富；使富足"],
-        ["conjunction", "连词；结合"], ["ethnic", "种族的；民族的"], ["fluid", "液体；流动的"],
-        ["anyhow", "无论如何；总之"], ["fraction", "部分；分数；少量"], ["frontier", "边境；前沿；边疆"],
-        ["atmosphere", "气氛；大气；氛围"], ["frustrate", "使沮丧；挫败；阻挠"], ["grateful", "感激的；感谢的"],
-        ["grief", "悲伤；悲痛"], ["ancient", "古代的；古老的"], ["harmony", "和谐；融洽"],
-        ["architecture", "建筑；建筑学"], ["haul", "拖；拉；运送"], ["agency", "机构；代理处"],
-        ["holy", "神圣的；圣洁的"], ["honesty", "诚实；正直"], ["container", "容器；集装箱"],
-        ["horizon", "地平线；眼界"], ["host", "主人；主持；宿主"], ["humanity", "人类；人性；人道"],
-        ["deficiency", "缺乏；不足；缺陷"], ["humble", "谦逊的；简陋的"], ["identification", "识别；身份证明"],
-        ["sightseeing", "观光；游览"], ["immune", "免疫的；不受影响的"], ["implicit", "含蓄的；暗示的"],
-        ["audience", "观众；听众"], ["impulse", "冲动；推动力"], ["wrap", "包裹；缠绕"],
-        ["induce", "诱导；引起；导致"], ["bow", "鞠躬；弓；弯腰"], ["insane", "疯狂的；精神失常的"],
-        ["integrity", "正直；完整；诚信"], ["intensify", "加强；加剧；强化"]
-    ],
-    12: [
-        ["breakthrough", "突破；重大进展"], ["interact", "相互作用；交流"], ["interaction", "互动；相互作用"],
-        ["joint", "共同的；关节；连接处"], ["catalog(ue)", "目录；编入目录"], ["journal", "期刊；日记；杂志"],
-        ["judgment", "判断；判断力"], ["entry", "进入；入口；条目"], ["justification", "正当理由；辩护"],
-        ["latter", "后者；后半的"], ["liberty", "自由；自主"], ["certainty", "确定；必然的事"],
-        ["liquid", "液体；液态的"], ["literary", "文学的；爱好文学的"], ["explosion", "爆炸；激增"],
-        ["local", "当地的；本地的"], ["lump", "块；肿块；成团"], ["luxury", "奢侈品；奢华"],
-        ["magnetic", "有磁性的；有吸引力的"], ["male", "男性的；雄性的"], ["management", "管理；经营"],
-        ["inherent", "内在的；固有的"], ["mankind", "人类"], ["channel", "渠道；频道；通道"],
-        ["manipulate", "操纵；操控；处理"], ["married", "已婚的"], ["mate", "伙伴；配偶；配对"],
-        ["meantime", "同时；其间"], ["afterward(s)", "后来；之后"], ["mechanic", "技工；机械师"],
-        ["mere", "仅仅；只不过"], ["commence", "开始；启动"], ["migrate", "迁徙；移居"],
-        ["mirror", "镜子；反映"], ["mobile", "移动的；便携的"], ["consultant", "顾问；咨询师"],
-        ["moderate", "适度的；温和的"], ["adult", "成年人；成熟的"], ["modify", "修改；更改；修饰"],
-        ["multiply", "繁殖；增加；相乘"], ["nasty", "恶劣的；令人不快的"], ["nevertheless", "然而；不过"],
-        ["compensation", "补偿；赔偿金"], ["norm", "规范；标准"], ["persuasion", "说服；劝说"],
-        ["notion", "概念；想法；观念"], ["nourish", "滋养；养育；滋养"], ["nuclear", "核的；原子核的"],
-        ["origin", "起源；源头；出身"], ["percentage", "百分比；百分率"], ["outcome", "结果；成果"],
-        ["overseas", "海外的；在海外"], ["cupboard", "橱柜；壁柜"], ["overwhelm", "压倒；使不知所措"],
-        ["pave", "铺设；铺路"], ["plague", "瘟疫；灾害；困扰"], ["dean", "院长；系主任"],
-        ["product", "产品；产物"], ["rail", "栏杆；铁轨"], ["productive", "多产的；富有成效的"],
-        ["dimension", "维度；方面；尺寸"], ["prosperity", "繁荣；兴旺"], ["quest", "追求；探寻"],
-        ["reader", "读者；读物"], ["punishment", "惩罚；处罚"], ["region", "地区；区域"],
-        ["rigid", "严格的；僵硬的"], ["compensate", "补偿；赔偿"], ["rob", "抢劫；掠夺"],
-        ["scrape", "刮；擦；艰难谋生"], ["seemingly", "看似；表面上"], ["remark", "评论；言论"],
-        ["social", "社会的；社交的"], ["sour", "酸的；发酸的"], ["spontaneous", "自发的；自然的"],
-        ["council", "委员会；议会；理事会"], ["stability", "稳定；稳固"], ["stagger", "摇晃；蹒跚；使震惊"],
-        ["rhythm", "节奏；韵律"], ["strap", "带子；捆扎"], ["stripe", "条纹；种类"],
-        ["barber", "理发师"], ["submerge", "淹没；潜入水中"], ["administration", "管理；行政部门"],
-        ["substitute", "代替；替代品"], ["subtle", "微妙的；细微的"], ["automatic", "自动的；无意识的"],
-        ["subtract", "减去；扣除"], ["suck", "吮吸；吸收"], ["sum", "总和；总计；总结"],
-        ["burden", "负担；重担"], ["superficial", "表面的；肤浅的"], ["supplement", "补充；增补；附录"],
-        ["technology", "科技；技术"], ["surge", "激增；汹涌"], ["survey", "调查；勘测；审视"],
-        ["symbol", "象征；符号"], ["approximately", "大约; 近似"], ["sympathetic", "同情的; 赞同的"],
-        ["sympathy", "同情; 同情心"], ["tag", "标签; 标记; 附加"], ["target", "目标; 靶子"],
-        ["fertilizer", "肥料"], ["tax", "税收; 征税"], ["textbook", "教科书; 课本"],
-        ["defy", "违抗; 藐视; 挑战"], ["theory", "理论; 学说"], ["thereby", "因此; 从而"],
-        ["engineering", "工程; 工程学"], ["threat", "威胁; 恐吓"], ["thrill", "使激动; 兴奋"],
-        ["elsewhere", "在别处; 到别处"], ["trail", "痕迹; 追踪; 小径"], ["transaction", "交易; 办理"],
-        ["depict", "描绘; 描述"], ["translation", "翻译; 译文"], ["engine", "发动机; 引擎"],
-        ["fabric", "织物; 布料; 结构"], ["transportation", "运输; 交通"], ["tremendous", "巨大的; 极好的"],
-        ["equality", "平等; 相等"], ["trend", "趋势; 潮流"], ["fake", "伪造的; 假货"],
-        ["tune", "曲调; 调音"], ["twist", "扭转; 扭曲"], ["unfair", "不公平的"],
-        ["evil", "邪恶的; 罪恶"], ["utter", "完全的; 说出"], ["vehicle", "车辆; 交通工具"],
-        ["venture", "冒险; 企业"], ["foundation", "基础; 基金会; 地基"], ["executive", "行政的; 高管"],
-        ["vertical", "垂直的; 直立的"], ["via", "通过; 经由"], ["frame", "框架; 结构; 构建"],
-        ["visible", "可见的; 明显的"], ["freight", "货运; 货物"], ["vital", "至关重要的; 生命的"],
-        ["enroll", "注册; 入学; 招收"], ["vivid", "生动的; 鲜明的"], ["artistic", "艺术的; 有艺术感的"],
-        ["volume", "音量; 卷; 体积"], ["warmth", "温暖; 热情"], ["whoever", "无论谁; 任何人"],
-        ["cycle", "循环; 周期; 自行车"], ["width", "宽度; 广度"], ["worthy", "值得的; 有价值的"],
-        ["acre", "英亩"], ["wrap", "包裹; 缠绕"], ["abnormal", "反常的; 异常的"],
-        ["yield", "产出; 屈服; 让步"], ["forth", "向前; 往外"], ["investment", "投资"],
-        ["enthusiasm", "热情; 热忱"], ["fraud", "欺诈; 骗子"]
-    ]
+    5: [["section","部分; 部门; 区域"],["selection","选择; 挑选"],["dispose","处理; 安排; 扔掉"],["extensive","广泛的; 大量的"],["appoint","任命; 约定"],["account","解释; 账户; 认为"],["beneficial","有益的"],["arrange","安排; 整理"],["tender","温柔的; 脆弱的"],["preferable","更可取的; 更好的"],["arrangement","安排; 筹备"],["slight","轻微的; 轻视"],["liable","有责任的; 易于____的"],["attraction","吸引; 吸引力"],["mild","温和的; 轻微的"],["extension","延伸; 扩大"],["fascinate","使着迷; 深深吸引"],["fundamental","基本的; 根本的"],["assemble","组装; 集合"],["comparative","比较的; 相对的"],["extent","程度; 范围"],["attractive","有吸引力的"],["comparison","比较; 对比"],["supreme","最高的; 至高的"],["vary","变化; 改变"],["significant","重要的; 显著的"],["accumulate","积累; 积攒"],["transfer","转移; 转让; 转学"],["involve","涉及; 包含; 使参与"],["shift","转移; 转变; 更换"],["significance","意义; 重要性"],["nuisance","讨厌的人/事; 麻烦"],["comprise","包含; 由____组成"],["cultivate","培养; 耕作"],["anxiety","焦虑; 担忧"],["offend","冒犯; 违反"],["transport","运输; 运送"],["postpone","推迟; 延期"],["impress","给____留下印象"],["transmit","传输; 传播; 发送"],["conservative","保守的; 守旧的"],["impression","印象; 感想"],["transform","改变; 使变形"],["confident","自信的; 有信心的"],["impressive","令人印象深刻的"],["transplant","移植; 移栽"],["grant","授予; 同意; 拨款"],["interfere","干涉; 干扰"],["liberal","开明的; 自由的; 慷慨的"],["exaggerate","夸张; 夸大"],["range","范围; 一系列; 变动"],["outstanding","杰出的; 显著的"],["curiosity","好奇心; 好奇"],["differ","不同; 有区别"],["consistent","一致的; 始终如一的"],["remedy","补救; 治疗; 疗法"],["bare","赤裸的; 光秃秃的"],["considerate","体贴的; 考虑周到的"],["status","地位; 状态"],["vacant","空缺的; 茫然的"],["optimistic","乐观的"],["determination","决心; 决定"],["hollow","空的; 空洞的"],["optional","可选择的; 非强制的"],["accurate","准确的; 精确的"],["blank","空白的; 茫然的"],["obvious","明显的; 显而易见的"],["adequate","足够的; 适当的"],["relate","联系; 讲述; 相关"],["exhaust","耗尽; 使筋疲力尽"],["excessive","过多的; 过分的"],["urgent","紧急的; 急迫的"],["exploit","利用; 剥削; 开发"],["excess","过量; 过剩"],["partial","部分的; 偏袒的"],["consume","消耗; 消费; 吃光"]],
+    6: [["idle","闲置的; 懒散的; 虚度"],["emotion","情绪; 情感"],["response","回应; 答复; 反应"],["inevitable","不可避免的"],["awkward","尴尬的; 笨拙的"],["responsible","负责的; 可靠的"],["poverty","贫穷; 贫困"],["gradual","逐渐的; 逐步的"],["settlement","定居; 解决; 定居点"],["vigorous","精力充沛的; 有力的"],["amaze","使惊奇; 使惊愕"],["solution","解决办法; 溶液"],["trial","试验; 审判; 考验"],["startle","使惊吓; 使吃惊"],["grasp","抓住; 理解; 领会"],["battery","电池; 一系列"],["amuse","使开心; 逗乐"],["reap","收获; 获得"],["reserve","保留; 预订; 储备"],["feature","特征; 特点; 以——为特色"],["compress","压缩; 压紧"],["provision","供应; 条款; 预备"],["trait","特征; 品质; 特点"],["decrease","减少; 降低"],["tidy","整洁的; 整理"],["stimulate","刺激; 激励; 促进"],["deduct","扣除; 减去"],["appreciate","欣赏; 感激; 理解"],["appearance","外观; 外貌; 出现"],["exchange","交换; 交流"],["appeal","呼吁; 吸引; 上诉"],["secure","安全的; 获得; 保护"],["original","最初的; 原创的"],["apply","申请; 应用; 适用"],["disturb","打扰; 妨碍; 扰乱"],["extreme","极端的; 极度的"],["application","申请; 应用"],["tense","紧张的; 拉紧的"],["expense","花费; 开销"],["applicant","申请人"],["intensive","集中的; 深入的"],["virtue","美德; 优点"],["applicable","适用的; 合适的"],["access","通道; 进入; 使用权"],["property","财产; 性质; 房产"],["approve","批准; 赞成; 认可"],["assess","评估; 评定"],["tough","艰难的; 坚韧的"],["pace","步伐; 节奏; 速度"],["assignment","任务; 作业; 分配"],["instant","立即的; 瞬间"],["scratch","抓; 刮; 擦伤"],["exception","例外; 除外"]],
+    7: [["advisable","明智的；可取的"],["gap","缺口；差距；间隔"],["vain","徒劳的；虚荣的"],["rate","比率；速度；评价"],["motivate","激励；激发"],["interval","间隔；间歇"],["available","可获得的；可用的"],["equivalent","等价的；相等的"],["debate","辩论；争论"],["tedious","冗长乏味的；繁琐的"],["perspective","视角；观点；远景"],["harsh","严厉的；苛刻的；刺耳的"],["regardless","不管；不顾"],["arouse","引起；唤醒；激发"],["consult","咨询；请教；查阅"],["wreck","破坏；失事；残骸"],["impact","影响；冲击"],["undermine","破坏；削弱；损害"],["capacity","能力；容量"],["rip","撕裂；撕开"],["dispute","争论；争端；质疑"],["temper","脾气；情绪；缓和"],["essential","至关重要的；基本的"],["passion","激情；热爱；怒火"],["possibility","可能性"],["pollute","污染；弄脏"],["leak","泄漏；漏洞"],["stain","污渍；玷污"],["necessarily","必要地；必定"],["approach","方法；接近；处理"],["reveal","揭示；显示；透露"],["resist","抵抗；抗拒；忍耐"],["omit","省略；遗漏；忽略"],["sustain","维持；支撑；经受"],["intact","完整的；未受损的"],["tolerate","容忍；忍受；包容"],["revise","修订；复习；修改"],["bound","一定的；束缚；跳跃"],["spot","地点；发现；认出"],["boundary","边界；界限"],["remarkable","显著的；非凡的"],["association","协会；联系；联想"],["trace","追踪；痕迹；追溯"],["recycle","回收；循环利用"],["regulate","管理；调节；控制"],["abuse","滥用；虐待；辱骂"],["lest","唯恐；以免"],["overlook","俯瞰；忽视；宽恕"],["coordinate","协调；配合"],["intention","意图；目的；打算"],["mood","心情；情绪"],["enormous","巨大的；极大的"],["reconcile","调和；和解；妥协"],["rainbow","彩虹"],["ribbon","丝带；带状物"],["rank","等级；排名；地位"],["reverse","颠倒；反转；相反的"],["occupy","占据；占用；使忙碌"],["promote","促进；提升；推广"],["classify","分类；归类"],["accuse","指责；控告；指控"],["glimpse","瞥见；一瞥"],["view","看法；视野；观看"],["vision","视力；视野；愿景"]],
+    8: [["entitle","使有权；给——题名"],["absorb","吸收；理解"],["concentrate","集中；专注"],["commit","犯（错）；承诺；投入"],["switch","转换；开关"],["convert","转换；转变"],["fruitful","富有成效的；多产的"],["effective","有效的；起作用的"],["expansive","广阔的；扩张的"],["expansion","扩张；膨胀"],["define","定义；解释"],["definite","明确的；一定的"],["submit","提交；屈服"],["claim","声称；索要；断言"],["assert","断言；坚持主张"],["proclaim","宣告；声明"],["amount","数量；总计"],["tend","倾向；照料"],["tame","驯服的；温顺的；驯化"],["largely","主要地；很大程度上"],["guilty","有罪的；内疚的"],["oblige","迫使；帮忙；施恩惠"],["issue","问题；发行；流出"],["severe","严重的；严厉的"],["expose","暴露；揭露"],["exposure","暴露；曝光"],["betray","背叛；泄露"],["acquire","获得；取得"],["inquire","询问；打听"],["furnish","提供；布置家具"],["propose","提议；建议"],["dense","密集的；稠密的"],["device","设备；装置"],["valid","有效的；合理的"],["trap","陷阱；困住"],["constant","持续的；恒定的"],["bold","大胆的；粗体的"],["efficient","高效的"],["incline","倾斜；倾向"],["purchase","购买"],["particularly","尤其；特别"],["retain","保留；保持"],["endure","忍受；持续"],["maintain","维持；保持；坚持认为"],["survive","生存；幸存；生还"],["minimum","最小值；最低的"],["modest","谦虚的；适度的"],["stock","库存；股票；储备"],["assume","假定；认为；承担"],["crime","罪行；犯罪"],["distinct","明显的；不同的；清晰的"],["sufficient","足够的；充足的"],["approximate","大约；近似"],["display","展示；陈列；表现"],["reaction","反应；回应"],["comment","评论；议论"],["artificial","人造的；人工的"],["contrast","对比；对照"],["contribute","贡献；捐献；促成"],["sole","唯一的；单独的"],["attain","获得；达到；实现"],["observe","观察；遵守；庆祝"],["observation","观察；观察力"],["growth","成长；增长；发展"]],
+    9: [["neglect","忽视;疏忽"],["deny","否认;拒绝"],["miserable","痛苦的;悲惨的"],["opportunity","机会;机遇"],["reality","现实;真实"],["consequently","因此;所以"],["relieve","减轻;缓解;宽慰"],["relief","减轻;解脱;救济"],["contrary","相反的;对立的"],["pitch","音调;投掷;球场"],["toss","扔;抛;投掷"],["insert","插入;嵌入"],["impose","强加;征收;推行"],["plunge","暴跌;投入;猛冲"],["adjust","调整;适应"],["harm","伤害;损害"],["spite","恶意;不顾"],["dim","昏暗的;模糊的"],["delivery","交付;投递;分娩"],["inform","通知;告知"],["replace","代替;取代"],["accomplish","完成;实现"],["surround","包围;环绕"],["circumstance","情况;环境"],["generate","产生;生成"],["create","创造;创作"],["creative","有创造力的"],["fade","褪色;衰退;消失"],["thorough","彻底的;详尽的"],["procedure","程序;步骤"],["process","过程;处理"],["activity","活动;行动"],["participate","参与;参加"],["cliff","悬崖;峭壁"],["respectively","分别地;各自地"],["reasonable","合理的;公道的"],["specific","具体的;特定的"],["specialize","专攻;专门研究"],["usage","使用;用法"],["utility","效用;实用"],["stable","稳定的;稳固的"],["abolish","废除;废止"],["abundant","大量的;丰富的"],["cabinet","内阁;橱柜"],["candidate","候选人;报考者"],["capable","有能力的;能干的"],["decay","腐烂;衰退"],["economy","经济;节约"],["faithful","忠实的;忠诚的"],["identical","相同的;同一的"],["lag","落后;滞后"],["negative","消极的;否定的"],["parade","游行;检阅"],["rack","架子;折磨"],["rare","稀有的;罕见的"],["raw","生的;原始的;未加工的"],["sacrifice","牺牲;奉献"],["salary","薪水"],["wage","工资(周薪)"],["veteran","老兵;经验丰富的人"],["assembly","集会;组装;议会"],["clue","线索;提示"],["code","代码;准则;密码"],["collective","集体的;集体"]],
+    10: [["federal","联邦的；联邦政府的"],["feedback","反馈；回复"],["fertile","肥沃的；多产的"],["finding","发现；调查结果"],["immense","巨大的；极大的"],["painful","痛苦的；疼痛的"],["perceive","感知；理解；察觉"],["perception","感知；看法；洞察力"],["poison","毒药；毒害"],["sanction","制裁；认可；批准"],["script","剧本；手稿；笔迹"],["senator","参议员"],["sexual","性的；性别的"],["shortly","不久；立刻；简短地"],["sigh","叹气；叹息"],["ski","滑雪"],["tremble","颤抖；摇晃"],["fluctuate","波动；起伏"],["quiver","颤抖；抖动"],["tutor","导师；家教；辅导"],["union","联盟；工会；联合"],["unload","卸载；卸下"],["exhibit","展览；展示；展品"],["expel","驱逐；开除；排出"],["explicit","明确的；清晰的"],["democracy","民主；民主制"],["accent","口音；重音"],["acceptable","可接受的"],["definitely","肯定；明确地"],["acid","酸；酸性的"],["drift","漂流；漂移；趋势"],["amusement","娱乐；乐趣"],["aspect","方面；外观"],["construct","建造；构建；构思"],["crew","全体船员/机组人员"],["divorce","离婚；分离"],["domestic","国内的；家庭的；家养的"],["evidence","证据；证明"],["evolve","进化；演变；发展"],["focus","专注；焦点；聚焦"],["organ","器官；机构；风琴"],["precaution","预防；警惕；防备"],["prior","先前的；优先的"],["project","项目；工程；投射"],["revolt","反抗；反叛；反感"],["scatter","分散；散开；散播"],["sphere","领域；球体；范围"],["stir","搅动；激发；搅动"],["strain","压力；拉紧；扭伤"],["stress","压力；强调；重读"],["substance","物质；实质；物品"],["up-to-date","最新的；现代化的"],["vague","模糊的；含糊的"],["blur","模糊；使模糊"],["vessel","船；容器；血管"],["agenda","议程；日程"],["alongside","在旁边；与——一起"],["banner","横幅；旗帜"],["chap","家伙；小伙子"],["charity","慈善；慈善机构"],["charter","宪章；特许；包租"],["dash","猛冲；破折号；短跑"],["declaration","声明；宣告"],["echo","回声；回响；附和"],["editorial","社论；编辑的"],["elderly","年老的；老年人"]],
+    11: [["bar","酒吧；禁止；障碍"],["dot","点；小点；点缀"],["bond","纽带；结合；债券"],["applaud","鼓掌；称赞"],["bonus","奖金；红利；额外好处"],["dental","牙齿的；牙科的"],["cell","细胞；牢房；电池"],["anyway","无论如何；不管怎样"],["colleague","同事；同僚"],["album","相册；专辑；集邮册"],["combination","结合；组合；联合"],["philosophy","哲学；人生观"],["aid","帮助；援助；辅助"],["compatible","兼容的；和睦的"],["committee","委员会"],["outward","向外的；外表的"],["consensus","共识；一致意见"],["presence","出席；存在；风度"],["contaminate","污染；弄脏"],["airline","航空公司；航线"],["ambitious","雄心勃勃的；有野心的"],["cord","绳索；电线；弦"],["criminal","罪犯；犯罪的"],["plus","加上；加号；优势"],["cripple","使残疾；削弱；跛子"],["curb","控制；抑制；路边"],["decade","十年；十年期"],["carpenter","木匠"],["probe","探查；探测；调查"],["denial","否认；拒绝；克制"],["progressive","进步的；渐进的"],["destructive","破坏性的；有害的"],["dignity","尊严；庄重"],["calendar","日历；日程表"],["dilemma","困境；进退两难"],["refusal","拒绝；回绝"],["astonish","使惊讶；使吃惊"],["directly","直接地；立即"],["resent","怨恨；愤恨"],["signal","信号；标志"],["awful","糟糕的；可怕的"],["shell","壳；贝壳；外壳"],["sideways","向侧面；侧身地"],["wisdom","智慧；明智"],["roast","烘烤；烤肉"],["creation","创造；创作；作品"],["rude","粗鲁的；无礼的"],["distract","使分心；转移注意力"],["screw","螺丝；拧紧"],["whistle","口哨；吹口哨"],["dizzy","头晕的；眩晕的"],["enclose","围住；附上；封闭"],["welfare","福利；幸福"],["energetic","精力充沛的"],["cute","可爱的；机灵的"],["enjoyable","令人愉快的"],["deadly","致命的；极度的"],["enlighten","启发；开导；照亮"],["corporation","公司；企业"],["enrich","使丰富；使富足"],["conjunction","连词；结合"],["ethnic","种族的；民族的"],["fluid","液体；流动的"],["anyhow","无论如何；总之"],["fraction","部分；分数；少量"],["frontier","边境；前沿；边疆"],["atmosphere","气氛；大气；氛围"],["frustrate","使沮丧；挫败；阻挠"],["grateful","感激的；感谢的"],["grief","悲伤；悲痛"],["ancient","古代的；古老的"],["harmony","和谐；融洽"],["architecture","建筑；建筑学"],["haul","拖；拉；运送"],["agency","机构；代理处"],["holy","神圣的；圣洁的"],["honesty","诚实；正直"],["container","容器；集装箱"],["horizon","地平线；眼界"],["host","主人；主持；宿主"],["humanity","人类；人性；人道"],["deficiency","缺乏；不足；缺陷"],["humble","谦逊的；简陋的"],["identification","识别；身份证明"],["sightseeing","观光；游览"],["immune","免疫的；不受影响的"],["implicit","含蓄的；暗示的"],["audience","观众；听众"],["impulse","冲动；推动力"],["wrap","包裹；缠绕"],["induce","诱导；引起；导致"],["bow","鞠躬；弓；弯腰"],["insane","疯狂的；精神失常的"],["integrity","正直；完整；诚信"],["intensify","加强；加剧；强化"]],
+    12: [["breakthrough","突破；重大进展"],["interact","相互作用；交流"],["interaction","互动；相互作用"],["joint","共同的；关节；连接处"],["catalog(ue)","目录；编入目录"],["journal","期刊；日记；杂志"],["judgment","判断；判断力"],["entry","进入；入口；条目"],["justification","正当理由；辩护"],["latter","后者；后半的"],["liberty","自由；自主"],["certainty","确定；必然的事"],["liquid","液体；液态的"],["literary","文学的；爱好文学的"],["explosion","爆炸；激增"],["local","当地的；本地的"],["lump","块；肿块；成团"],["luxury","奢侈品；奢华"],["magnetic","有磁性的；有吸引力的"],["male","男性的；雄性的"],["management","管理；经营"],["inherent","内在的；固有的"],["mankind","人类"],["channel","渠道；频道；通道"],["manipulate","操纵；操控；处理"],["married","已婚的"],["mate","伙伴；配偶；配对"],["meantime","同时；其间"],["afterward(s)","后来；之后"],["mechanic","技工；机械师"],["mere","仅仅；只不过"],["commence","开始；启动"],["migrate","迁徙；移居"],["mirror","镜子；反映"],["mobile","移动的；便携的"],["consultant","顾问；咨询师"],["moderate","适度的；温和的"],["adult","成年人；成熟的"],["modify","修改；更改；修饰"],["multiply","繁殖；增加；相乘"],["nasty","恶劣的；令人不快的"],["nevertheless","然而；不过"],["compensation","补偿；赔偿金"],["norm","规范；标准"],["persuasion","说服；劝说"],["notion","概念；想法；观念"],["nourish","滋养；养育；滋养"],["nuclear","核的；原子核的"],["origin","起源；源头；出身"],["percentage","百分比；百分率"],["outcome","结果；成果"],["overseas","海外的；在海外"],["cupboard","橱柜；壁柜"],["overwhelm","压倒；使不知所措"],["pave","铺设；铺路"],["plague","瘟疫；灾害；困扰"],["dean","院长；系主任"],["product","产品；产物"],["rail","栏杆；铁轨"],["productive","多产的；富有成效的"],["dimension","维度；方面；尺寸"],["prosperity","繁荣；兴旺"],["quest","追求；探寻"],["reader","读者；读物"],["punishment","惩罚；处罚"],["region","地区；区域"],["rigid","严格的；僵硬的"],["compensate","补偿；赔偿"],["rob","抢劫；掠夺"],["scrape","刮；擦；艰难谋生"],["seemingly","看似；表面上"],["remark","评论；言论"],["social","社会的；社交的"],["sour","酸的；发酸的"],["spontaneous","自发的；自然的"],["council","委员会；议会；理事会"],["stability","稳定；稳固"],["stagger","摇晃；蹒跚；使震惊"],["rhythm","节奏；韵律"],["strap","带子；捆扎"],["stripe","条纹；种类"],["barber","理发师"],["submerge","淹没；潜入水中"],["administration","管理；行政部门"],["substitute","代替；替代品"],["subtle","微妙的；细微的"],["automatic","自动的；无意识的"],["subtract","减去；扣除"],["suck","吮吸；吸收"],["sum","总和；总计；总结"],["burden","负担；重担"],["superficial","表面的；肤浅的"],["supplement","补充；增补；附录"],["technology","科技；技术"],["surge","激增；汹涌"],["survey","调查；勘测；审视"],["symbol","象征；符号"],["approximately","大约; 近似"],["sympathetic","同情的; 赞同的"],["sympathy","同情; 同情心"],["tag","标签; 标记; 附加"],["target","目标; 靶子"],["fertilizer","肥料"],["tax","税收; 征税"],["textbook","教科书; 课本"],["defy","违抗; 藐视; 挑战"],["theory","理论; 学说"],["thereby","因此; 从而"],["engineering","工程; 工程学"],["threat","威胁; 恐吓"],["thrill","使激动; 兴奋"],["elsewhere","在别处; 到别处"],["trail","痕迹; 追踪; 小径"],["transaction","交易; 办理"],["depict","描绘; 描述"],["translation","翻译; 译文"],["engine","发动机; 引擎"],["fabric","织物; 布料; 结构"],["transportation","运输; 交通"],["tremendous","巨大的; 极好的"],["equality","平等; 相等"],["trend","趋势; 潮流"],["fake","伪造的; 假货"],["tune","曲调; 调音"],["twist","扭转; 扭曲"],["unfair","不公平的"],["evil","邪恶的; 罪恶"],["utter","完全的; 说出"],["vehicle","车辆; 交通工具"],["venture","冒险; 企业"],["foundation","基础; 基金会; 地基"],["executive","行政的; 高管"],["vertical","垂直的; 直立的"],["via","通过; 经由"],["frame","框架; 结构; 构建"],["visible","可见的; 明显的"],["freight","货运; 货物"],["vital","至关重要的; 生命的"],["enroll","注册; 入学; 招收"],["vivid","生动的; 鲜明的"],["artistic","艺术的; 有艺术感的"],["volume","音量; 卷; 体积"],["warmth","温暖; 热情"],["whoever","无论谁; 任何人"],["cycle","循环; 周期; 自行车"],["width","宽度; 广度"],["worthy","值得的; 有价值的"],["acre","英亩"],["wrap","包裹; 缠绕"],["abnormal","反常的; 异常的"],["yield","产出; 屈服; 让步"],["forth","向前; 往外"],["investment","投资"],["enthusiasm","热情; 热忱"],["fraud","欺诈; 骗子"]]
 };
 
-// 将所有单词合并为一个数组，同时存储 lesson 信息
 let allWords = [];
 for (let lesson in wordsByLesson) {
     for (let [word, meaning] of wordsByLesson[lesson]) {
@@ -428,18 +214,15 @@ console.log(`总单词数: ${allWords.length}`);
 // ------------------- 全局变量 -------------------
 let currentDisplayWords = [...allWords];
 let currentIndex = 0;
-let meaningVisible = true;
 let spellMode = false;
 let autoSpeakEnabled = true;
-let autoAccent = 'en-US';  // 默认美式
+let autoAccent = 'en-US';
+let autoPlayEnabled = false;
+let autoPlayTimer = null;
+let autoPlayIntervalMs = 5000; // 默认5秒
 
 // localStorage 学习数据
-const STORAGE = {
-    MASTERY: 'final_pdf_mastery',
-    WRONG: 'final_pdf_wrong',
-    STUDY_LOG: 'final_pdf_study_log',
-    LAST_REVIEW: 'final_pdf_last_review'
-};
+const STORAGE = { MASTERY: 'final_pdf_mastery', WRONG: 'final_pdf_wrong', STUDY_LOG: 'final_pdf_study_log', LAST_REVIEW: 'final_pdf_last_review' };
 let mastery = JSON.parse(localStorage.getItem(STORAGE.MASTERY)) || {};
 let wrongList = JSON.parse(localStorage.getItem(STORAGE.WRONG)) || [];
 let studyLog = JSON.parse(localStorage.getItem(STORAGE.STUDY_LOG)) || {};
@@ -449,19 +232,17 @@ const EBBINGHAUS = [1, 2, 4, 7, 15, 30];
 function todayStr() { return new Date().toISOString().slice(0,10); }
 function logStudy() { let date = todayStr(); studyLog[date] = (studyLog[date] || 0) + 1; localStorage.setItem(STORAGE.STUDY_LOG, JSON.stringify(studyLog)); updateChart(); }
 
-// 错题本
 function updateWrongListUI() {
     let container = document.getElementById('wrongList');
     if(!wrongList.length) { container.innerHTML = '<li>暂无错词，加油！</li>'; return; }
     container.innerHTML = wrongList.map(word => `<li data-word="${word}">${word}</li>`).join('');
     document.querySelectorAll('#wrongList li').forEach(li => {
-        li.addEventListener('click', () => { let w = li.dataset.word; let idx = currentDisplayWords.findIndex(item=>item.word===w); if(idx!==-1) { currentIndex=idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); } });
+        li.addEventListener('click', () => { let w = li.dataset.word; let idx = currentDisplayWords.findIndex(item=>item.word===w); if(idx!==-1) { currentIndex=idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); stopAutoPlayIfNeeded(); } });
     });
 }
 function addToWrongList(word) { if(!wrongList.includes(word)) { wrongList.push(word); localStorage.setItem(STORAGE.WRONG, JSON.stringify(wrongList)); updateWrongListUI(); } }
 function removeFromWrongList(word) { wrongList = wrongList.filter(w => w !== word); localStorage.setItem(STORAGE.WRONG, JSON.stringify(wrongList)); updateWrongListUI(); }
 
-// 掌握度星级
 function updateMasteryStars() {
     let currentWord = currentDisplayWords[currentIndex]?.word;
     if(!currentWord) return;
@@ -474,7 +255,6 @@ function updateMasteryStars() {
 function setMastery(score) { let w = currentDisplayWords[currentIndex]?.word; if(!w) return; mastery[w] = score; localStorage.setItem(STORAGE.MASTERY, JSON.stringify(mastery)); lastReview[w] = Date.now(); localStorage.setItem(STORAGE.LAST_REVIEW, JSON.stringify(lastReview)); logStudy(); updateMasteryStars(); }
 document.querySelectorAll('.star').forEach(star => { star.addEventListener('click', (e) => { let score = parseInt(star.dataset.score); setMastery(score); }); });
 
-// 学习曲线图表
 let chart;
 function updateChart() {
     let labels = [], data = [];
@@ -485,7 +265,6 @@ function updateChart() {
     chart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'每日学习单词数', data, borderColor:'#2c4c7c', tension:0.2 }] } });
 }
 
-// 拼写模式
 function hideMeaningAndShowSpell() {
     if(!currentDisplayWords[currentIndex]) return;
     const w = currentDisplayWords[currentIndex];
@@ -527,7 +306,6 @@ function checkSpell() {
 }
 function revealAnswer() { if(currentDisplayWords[currentIndex]) document.getElementById('spellFeedback').innerHTML = `🔎 正确答案: ${currentDisplayWords[currentIndex].word}`; }
 
-// 发音函数（通用）
 function speak(lang) { 
     if(!currentDisplayWords[currentIndex]) return; 
     let utterance = new SpeechSynthesisUtterance(currentDisplayWords[currentIndex].word); 
@@ -536,38 +314,72 @@ function speak(lang) {
     speechSynthesis.speak(utterance); 
 }
 
-// 发音准确度
 let recognition;
 function initRecognition() { if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert("不支持语音识别"); return null; } const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; let rec = new SpeechRecognition(); rec.lang = 'en-US'; rec.interimResults = false; rec.maxAlternatives = 1; return rec; }
 function pronounceAccuracy() { if(!recognition) recognition = initRecognition(); if(!recognition) return; recognition.start(); recognition.onresult = (event) => { let spoken = event.results[0][0].transcript.toLowerCase().trim(); let target = currentDisplayWords[currentIndex]?.word.toLowerCase() || ''; if(spoken === target) alert(`🎉 完美！`); else if(spoken.includes(target) || target.includes(spoken)) alert(`👍 接近正确！ (你说: ${spoken})`); else alert(`❌ 发音有误，正确: ${target} (你说: ${spoken})`); }; recognition.onerror = () => alert("请检查麦克风权限"); }
 
-// UI更新（两个模式下都自动发音）
+// 自动轮播控制
+function startAutoPlay() {
+    if (autoPlayTimer) clearInterval(autoPlayTimer);
+    if (!autoPlayEnabled) return;
+    autoPlayTimer = setInterval(() => {
+        if (autoPlayEnabled && currentDisplayWords.length) {
+            nextWord();
+        }
+    }, autoPlayIntervalMs);
+}
+function stopAutoPlay() {
+    if (autoPlayTimer) {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
+    }
+}
+function setAutoPlay(enable) {
+    autoPlayEnabled = enable;
+    if (enable) startAutoPlay();
+    else stopAutoPlay();
+}
+// 当用户手动切换单词时，若自动轮播开启，应重置计时器，防止立即跳转（让用户停留当前单词足够时间）
+function resetAutoPlayTimer() {
+    if (autoPlayEnabled) {
+        if (autoPlayTimer) {
+            clearInterval(autoPlayTimer);
+            autoPlayTimer = setInterval(() => {
+                if (autoPlayEnabled && currentDisplayWords.length) {
+                    nextWord();
+                }
+            }, autoPlayIntervalMs);
+        }
+    }
+}
+function stopAutoPlayIfNeeded() {
+    if (autoPlayEnabled) resetAutoPlayTimer();
+}
+
 function updateWordUI() {
     if(!currentDisplayWords.length) return;
     const w = currentDisplayWords[currentIndex];
     document.getElementById('currentWord').innerHTML = w.word;
     document.getElementById('currentPhonetic').innerHTML = `Lesson ${w.lesson}`;
     document.getElementById('counterText').innerHTML = `第${currentIndex+1} / ${currentDisplayWords.length}词`;
-    // 无论是否拼写模式，都直接显示释义区域（拼写模式有单独的显示区域）
     if(!spellMode){
         document.getElementById('chineseDef').innerHTML = w.meaning;
         document.getElementById('exampleSent').innerHTML = w.example;
         document.getElementById('meaningPlaceholder').style.display = 'none';
         document.getElementById('meaningReal').style.display = 'block';
     } else {
-        // 拼写模式下仍然自动发音，但保持拼写界面
-        // 这里不覆盖拼写区域的内容，因为 hideMeaningAndShowSpell 已经设置了
-        // 但需要确保拼写区域的释义正确
         if(document.getElementById('spellModeArea').style.display === 'block') {
             document.getElementById('spellQuestion').innerHTML = `<i class="fas fa-question-circle"></i> 中文释义: ${w.meaning}`;
         }
     }
     updateMasteryStars();
-    // 自动发音：只要开关打开，就立即发音（两个模式都生效）
     if(autoSpeakEnabled) {
         speak(autoAccent);
     }
+    // 重置自动轮播计时器（让当前单词停留完整间隔）
+    if (autoPlayEnabled) resetAutoPlayTimer();
 }
+
 function nextWord() { if(currentDisplayWords.length===0) return; currentIndex = (currentIndex+1)%currentDisplayWords.length; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); }
 function prevWord() { if(currentDisplayWords.length===0) return; currentIndex = (currentIndex-1+currentDisplayWords.length)%currentDisplayWords.length; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); }
 
@@ -594,22 +406,21 @@ function filterByLesson(lesson) {
     updateWordUI();
     if(spellMode) hideMeaningAndShowSpell();
     else showMeaningArea();
+    resetAutoPlayTimer(); // 重置轮播计时器
 }
 lessonSelect.addEventListener('change', (e) => { filterByLesson(e.target.value); });
 populateLessonSelect();
 
-// 搜索
 function performSearch() {
     let keyword = document.getElementById('searchInput').value.trim().toLowerCase();
     if(!keyword) { alert("请输入单词"); return; }
     let idx = currentDisplayWords.findIndex(w => w.word === keyword);
-    if(idx !== -1) { currentIndex = idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); }
+    if(idx !== -1) { currentIndex = idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); resetAutoPlayTimer(); }
     else { alert(`未找到单词“${keyword}”`); }
 }
 document.getElementById('searchBtn').addEventListener('click', performSearch);
 document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
 
-// 口音选择器
 const autoAccentSelect = document.getElementById('autoAccentSelect');
 autoAccentSelect.addEventListener('change', (e) => { autoAccent = e.target.value; });
 
@@ -644,6 +455,7 @@ function openWordList() {
                 updateWordUI();
                 if (spellMode) hideMeaningAndShowSpell();
                 else showMeaningArea();
+                resetAutoPlayTimer();
             } else {
                 if (selectedLesson !== 'all' && lessonSelect.value != w.lesson) {
                     lessonSelect.value = w.lesson;
@@ -654,6 +466,7 @@ function openWordList() {
                 updateWordUI();
                 if (spellMode) hideMeaningAndShowSpell();
                 else showMeaningArea();
+                resetAutoPlayTimer();
             }
             wordListModal.style.display = 'none';
         });
@@ -661,7 +474,6 @@ function openWordList() {
     });
     wordListModal.style.display = 'flex';
 }
-
 wordListBtn.addEventListener('click', openWordList);
 closeWordListBtn.addEventListener('click', () => { wordListModal.style.display = 'none'; });
 window.addEventListener('click', (e) => { if (e.target === wordListModal) wordListModal.style.display = 'none'; });
@@ -669,31 +481,33 @@ window.addEventListener('click', (e) => { if (e.target === wordListModal) wordLi
 // 绑定其他事件
 document.getElementById('speakUkBtn').addEventListener('click', ()=>speak('en-GB'));
 document.getElementById('speakUsBtn').addEventListener('click', ()=>speak('en-US'));
-document.getElementById('prevBtn').addEventListener('click', prevWord);
-document.getElementById('nextBtn').addEventListener('click', nextWord);
+document.getElementById('prevBtn').addEventListener('click', () => { prevWord(); resetAutoPlayTimer(); });
+document.getElementById('nextBtn').addEventListener('click', () => { nextWord(); resetAutoPlayTimer(); });
 document.getElementById('darkModeBtn').addEventListener('click', toggleDark);
 document.getElementById('modeSwitchBtn').addEventListener('click', toggleSpellMode);
 document.getElementById('checkSpellBtn').addEventListener('click', checkSpell);
 document.getElementById('revealAnswerBtn').addEventListener('click', revealAnswer);
 document.getElementById('pronounceAccuracyBtn').addEventListener('click', pronounceAccuracy);
-document.getElementById('reviewWrongBtn').addEventListener('click', () => { if(wrongList.length) { let w = wrongList[0]; let idx = currentDisplayWords.findIndex(item=>item.word===w); if(idx!==-1) { currentIndex=idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); } } });
+document.getElementById('reviewWrongBtn').addEventListener('click', () => { if(wrongList.length) { let w = wrongList[0]; let idx = currentDisplayWords.findIndex(item=>item.word===w); if(idx!==-1) { currentIndex=idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); resetAutoPlayTimer(); } } });
 document.getElementById('autoSpeakCheckbox').addEventListener('change', (e) => { autoSpeakEnabled = e.target.checked; });
+// 自动轮播开关
+const autoPlayCheckbox = document.getElementById('autoPlayCheckbox');
+const autoPlayIntervalSelect = document.getElementById('autoPlayIntervalSelect');
+autoPlayCheckbox.addEventListener('change', (e) => { setAutoPlay(e.target.checked); });
+autoPlayIntervalSelect.addEventListener('change', (e) => { autoPlayIntervalMs = parseInt(e.target.value); if (autoPlayEnabled) { setAutoPlay(true); } }); // 重新启动轮播以应用新间隔
 
-// 深色模式
 function toggleDark(){ document.body.classList.toggle('dark'); localStorage.setItem('darkMode', document.body.classList.contains('dark')); }
 if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 let fontRange = document.getElementById('fontRange');
 fontRange.addEventListener('input', (e)=>{ let size = e.target.value; document.querySelector('.en-word').style.fontSize = `${size*2.2}rem`; });
 
-// 手势翻页
 let touchStartX = 0;
 document.querySelector('.master-card').addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
-document.querySelector('.master-card').addEventListener('touchend', (e) => { let endX = e.changedTouches[0].screenX; if(endX - touchStartX > 50) prevWord(); else if(touchStartX - endX > 50) nextWord(); });
+document.querySelector('.master-card').addEventListener('touchend', (e) => { let endX = e.changedTouches[0].screenX; if(endX - touchStartX > 50) { prevWord(); resetAutoPlayTimer(); } else if(touchStartX - endX > 50) { nextWord(); resetAutoPlayTimer(); } });
 
-// 键盘
 window.addEventListener('keydown', (e)=>{
-    if(e.key === 'ArrowLeft'){ prevWord(); e.preventDefault(); }
-    else if(e.key === 'ArrowRight'){ nextWord(); e.preventDefault(); }
+    if(e.key === 'ArrowLeft'){ prevWord(); resetAutoPlayTimer(); e.preventDefault(); }
+    else if(e.key === 'ArrowRight'){ nextWord(); resetAutoPlayTimer(); e.preventDefault(); }
 });
 
 // 初始化
@@ -701,9 +515,9 @@ updateWordUI();
 updateWrongListUI();
 updateChart();
 
-// PWA 简单注册
+// 自动轮播默认关闭，等待用户手动开启
 if ('serviceWorker' in navigator) {
-    const swCode = `const CACHE='final-pdf-v7'; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'])))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+    const swCode = `const CACHE='final-pdf-v8'; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'])))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
     const blob = new Blob([swCode], {type:'application/javascript'});
     navigator.serviceWorker.register(URL.createObjectURL(blob));
 }
