@@ -38,19 +38,42 @@
         .lesson-selector select, .accent-selector select { background: transparent; border: none; color: var(--chip-color); font-weight: 500; outline: none; font-size: 0.7rem; }
         .word-zone { padding: 1rem 1rem 0.3rem; text-align: center; }
         .word-paper { background: var(--card-bg); border-radius: 48px; padding: 1.2rem 0.8rem; border: 1px solid var(--card-border); }
-        .en-word { font-size: 2.5rem; font-weight: 800; color: var(--text-primary); word-break: break-word; }
-        .phonetic-txt { background: var(--chip-bg); display: inline-block; padding: 0.1rem 1rem; border-radius: 40px; font-size: 0.7rem; margin-top: 6px; }
+        .en-word { font-size: 2.5rem; font-weight: 800; color: var(--text-primary); word-break: break-word; margin-bottom: 6px; }
+        .phonetic-txt { background: var(--chip-bg); display: inline-block; padding: 0.1rem 1rem; border-radius: 40px; font-size: 0.7rem; margin-bottom: 12px; }
+        /* 释义卡片：居中显示，与单词对齐 */
+        .meaning-card {
+            background: var(--chip-bg);
+            border-radius: 32px;
+            padding: 0.8rem;
+            margin: 8px 0 12px;
+            text-align: center;          /* 水平居中 */
+            border: 1px solid var(--card-border);
+        }
+        .def-ch { 
+            font-size: 1rem; 
+            font-weight: 700; 
+            color: var(--def-color); 
+            margin-bottom: 6px;
+            justify-content: center;    /* 让内部的图标和文字居中 */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .example-en { 
+            color: var(--text-secondary); 
+            border-left: none;           /* 去掉左边框，更居中 */
+            padding-left: 0;
+            margin-top: 6px; 
+            font-size: 0.8rem;
+        }
+        .placeholder-tip { text-align: center; color: var(--placeholder-color); padding: 0.5rem; font-size: 0.8rem; }
+        .spell-area { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .spell-input { flex: 2; min-width: 140px; padding: 6px 12px; border-radius: 60px; border: 1px solid var(--btn-outline-border); background: var(--card-bg); color: var(--text-primary); font-size: 0.8rem; }
         .word-counter { margin-top: 8px; font-size: 0.7rem; background: var(--chip-bg); display: inline-block; padding: 2px 10px; border-radius: 30px; }
         .mastery-stars { display: flex; justify-content: center; gap: 6px; margin: 8px 0 4px; }
         .star { font-size: 1.3rem; cursor: pointer; color: #ccc; transition: 0.1s; }
         .star.active { color: #f5b042; }
         body.dark .star.active { color: #fbbf24; }
-        .meaning-panel { padding: 0.2rem 1rem 0.8rem; }
-        .meaning-card { background: var(--card-bg); border-radius: 32px; padding: 0.8rem; border: 1px solid var(--card-border); }
-        .def-ch { font-size: 1rem; font-weight: 700; color: var(--def-color); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        .example-en { color: var(--text-secondary); border-left: 3px solid var(--example-border); padding-left: 0.8rem; margin-top: 8px; font-size: 0.8rem; }
-        .spell-area { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-        .spell-input { flex: 2; min-width: 140px; padding: 6px 12px; border-radius: 60px; border: 1px solid var(--btn-outline-border); background: var(--card-bg); color: var(--text-primary); font-size: 0.8rem; }
         .btn-group, .nav-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 0.2rem 1rem 0.6rem; }
         .btn { border: none; background: white; padding: 0.4rem 0.9rem; border-radius: 50px; font-weight: 600; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s; }
         .btn-primary { background: var(--btn-primary-bg); color: white; }
@@ -134,22 +157,13 @@
         <div class="word-paper">
             <div class="en-word" id="currentWord">加载中...</div>
             <div class="phonetic-txt" id="currentPhonetic">/ˈhaɪ friːkwənsi/</div>
-            <div class="word-counter" id="counterText"></div>
-            <div class="mastery-stars" id="masteryStars">
-                <span class="star" data-score="1">☆</span><span class="star" data-score="2">☆</span><span class="star" data-score="3">☆</span><span class="star" data-score="4">☆</span><span class="star" data-score="5">☆</span>
-            </div>
-            <div id="reviewHint" style="font-size:0.65rem; margin-top:4px; color:var(--text-soft);"></div>
-        </div>
-    </div>
-
-    <div class="meaning-panel">
-        <div class="meaning-card">
+            <!-- 释义区域：正常模式显示释义，拼写模式显示拼写测试 -->
             <div id="meaningPlaceholder" class="placeholder-tip" style="display:none;"><i class="fas fa-lightbulb"></i> 点击「显示释义」或开启拼写模式</div>
-            <div id="meaningReal" style="display:block;">
+            <div id="meaningReal" class="meaning-card" style="display:block;">
                 <div class="def-ch"><i class="fas fa-bookmark"></i> <span id="chineseDef"></span></div>
                 <div class="example-en"><i class="fas fa-quote-right"></i> <span id="exampleSent">请用该词造句练习</span></div>
             </div>
-            <div id="spellModeArea" style="display:none;">
+            <div id="spellModeArea" class="meaning-card" style="display:none;">
                 <div class="def-ch"><span id="spellQuestion"></span></div>
                 <div class="spell-area">
                     <input type="text" id="spellInput" class="spell-input" placeholder="输入英文单词...">
@@ -158,6 +172,11 @@
                 <div id="spellFeedback" class="spell-feedback"></div>
                 <button id="revealAnswerBtn" class="btn btn-outline" style="margin-top:6px;">显示答案</button>
             </div>
+            <div class="word-counter" id="counterText"></div>
+            <div class="mastery-stars" id="masteryStars">
+                <span class="star" data-score="1">☆</span><span class="star" data-score="2">☆</span><span class="star" data-score="3">☆</span><span class="star" data-score="4">☆</span><span class="star" data-score="5">☆</span>
+            </div>
+            <div id="reviewHint" style="font-size:0.65rem; margin-top:4px; color:var(--text-soft);"></div>
         </div>
     </div>
 
@@ -217,9 +236,9 @@ let currentIndex = 0;
 let spellMode = false;
 let autoSpeakEnabled = true;
 let autoAccent = 'en-US';
-let autoPlayEnabled = true;   // 默认开启自动轮播
+let autoPlayEnabled = true;
 let autoPlayTimer = null;
-let autoPlayIntervalMs = 5000; // 默认5秒
+let autoPlayIntervalMs = 5000;
 
 // localStorage 学习数据
 const STORAGE = { MASTERY: 'final_pdf_mastery', WRONG: 'final_pdf_wrong', STUDY_LOG: 'final_pdf_study_log', LAST_REVIEW: 'final_pdf_last_review' };
@@ -318,7 +337,6 @@ let recognition;
 function initRecognition() { if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert("不支持语音识别"); return null; } const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; let rec = new SpeechRecognition(); rec.lang = 'en-US'; rec.interimResults = false; rec.maxAlternatives = 1; return rec; }
 function pronounceAccuracy() { if(!recognition) recognition = initRecognition(); if(!recognition) return; recognition.start(); recognition.onresult = (event) => { let spoken = event.results[0][0].transcript.toLowerCase().trim(); let target = currentDisplayWords[currentIndex]?.word.toLowerCase() || ''; if(spoken === target) alert(`🎉 完美！`); else if(spoken.includes(target) || target.includes(spoken)) alert(`👍 接近正确！ (你说: ${spoken})`); else alert(`❌ 发音有误，正确: ${target} (你说: ${spoken})`); }; recognition.onerror = () => alert("请检查麦克风权限"); }
 
-// 自动轮播控制
 function startAutoPlay() {
     if (autoPlayTimer) clearInterval(autoPlayTimer);
     if (!autoPlayEnabled) return;
@@ -351,9 +369,6 @@ function resetAutoPlayTimer() {
         }
     }
 }
-function stopAutoPlayIfNeeded() {
-    if (autoPlayEnabled) resetAutoPlayTimer();
-}
 
 function updateWordUI() {
     if(!currentDisplayWords.length) return;
@@ -375,14 +390,12 @@ function updateWordUI() {
     if(autoSpeakEnabled) {
         speak(autoAccent);
     }
-    // 重置自动轮播计时器（让当前单词停留完整间隔）
     if (autoPlayEnabled) resetAutoPlayTimer();
 }
 
 function nextWord() { if(currentDisplayWords.length===0) return; currentIndex = (currentIndex+1)%currentDisplayWords.length; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); }
 function prevWord() { if(currentDisplayWords.length===0) return; currentIndex = (currentIndex-1+currentDisplayWords.length)%currentDisplayWords.length; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); }
 
-// Lesson 下拉选择
 const lessonSelect = document.getElementById('lessonSelect');
 function populateLessonSelect() {
     let lessons = Object.keys(wordsByLesson).map(Number).sort((a,b)=>a-b);
@@ -405,7 +418,7 @@ function filterByLesson(lesson) {
     updateWordUI();
     if(spellMode) hideMeaningAndShowSpell();
     else showMeaningArea();
-    resetAutoPlayTimer(); // 重置轮播计时器
+    resetAutoPlayTimer();
 }
 lessonSelect.addEventListener('change', (e) => { filterByLesson(e.target.value); });
 populateLessonSelect();
@@ -423,7 +436,6 @@ document.getElementById('searchInput').addEventListener('keypress', (e) => { if(
 const autoAccentSelect = document.getElementById('autoAccentSelect');
 autoAccentSelect.addEventListener('change', (e) => { autoAccent = e.target.value; });
 
-// 单词列表模态框
 const wordListModal = document.getElementById('wordListModal');
 const wordListContainer = document.getElementById('wordListContainer');
 const modalLessonTitle = document.getElementById('modalLessonTitle');
@@ -477,7 +489,6 @@ wordListBtn.addEventListener('click', openWordList);
 closeWordListBtn.addEventListener('click', () => { wordListModal.style.display = 'none'; });
 window.addEventListener('click', (e) => { if (e.target === wordListModal) wordListModal.style.display = 'none'; });
 
-// 绑定其他事件
 document.getElementById('speakUkBtn').addEventListener('click', ()=>speak('en-GB'));
 document.getElementById('speakUsBtn').addEventListener('click', ()=>speak('en-US'));
 document.getElementById('prevBtn').addEventListener('click', () => { prevWord(); resetAutoPlayTimer(); });
@@ -489,10 +500,9 @@ document.getElementById('revealAnswerBtn').addEventListener('click', revealAnswe
 document.getElementById('pronounceAccuracyBtn').addEventListener('click', pronounceAccuracy);
 document.getElementById('reviewWrongBtn').addEventListener('click', () => { if(wrongList.length) { let w = wrongList[0]; let idx = currentDisplayWords.findIndex(item=>item.word===w); if(idx!==-1) { currentIndex=idx; updateWordUI(); if(spellMode) hideMeaningAndShowSpell(); else showMeaningArea(); resetAutoPlayTimer(); } } });
 document.getElementById('autoSpeakCheckbox').addEventListener('change', (e) => { autoSpeakEnabled = e.target.checked; });
-// 自动轮播开关
 const autoPlayCheckbox = document.getElementById('autoPlayCheckbox');
 const autoPlayIntervalSelect = document.getElementById('autoPlayIntervalSelect');
-autoPlayCheckbox.checked = true;   // 默认选中
+autoPlayCheckbox.checked = true;
 autoPlayCheckbox.addEventListener('change', (e) => { setAutoPlay(e.target.checked); });
 autoPlayIntervalSelect.addEventListener('change', (e) => { autoPlayIntervalMs = parseInt(e.target.value); if (autoPlayEnabled) { setAutoPlay(true); } });
 
@@ -510,16 +520,13 @@ window.addEventListener('keydown', (e)=>{
     else if(e.key === 'ArrowRight'){ nextWord(); resetAutoPlayTimer(); e.preventDefault(); }
 });
 
-// 初始化
 updateWordUI();
 updateWrongListUI();
 updateChart();
-
-// 启动默认自动轮播
 setAutoPlay(true);
 
 if ('serviceWorker' in navigator) {
-    const swCode = `const CACHE='final-pdf-v9'; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'])))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+    const swCode = `const CACHE='final-pdf-v10'; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'])))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
     const blob = new Blob([swCode], {type:'application/javascript'});
     navigator.serviceWorker.register(URL.createObjectURL(blob));
 }
